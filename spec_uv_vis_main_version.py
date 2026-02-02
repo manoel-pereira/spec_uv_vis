@@ -9,8 +9,8 @@ class spec_uv_vis:
         Analyse basic data from Gaussian log output file for excited state calculation
 
         Args:
-            Files (list[str] or None): list of log file name (s) (defaut:None). If None, the log files will be all from the current work directory
-            dir (list[str]): directory of source file (s). Default is to write as command-line parameter (argv[1])
+            Files (list[str] or None): list of input file name (s) (defaut:None). If None, the log or out files will be all from the current work directory
+            dir (list[str]): directory of input file (s). Default is to write as command-line parameter (argv[1])
             start (int): start of wavelength (default: 200)
             end (int): end of wavelength (default: 400)
             number_of_points (int): number of points for gaussian convolution (default: 1000)
@@ -57,7 +57,7 @@ class spec_uv_vis:
             None
 
         Returns:
-            list[dict]: the keys of dict are the wavelengths and the values are list[oscillator strengths(float)]. Data for each source file
+            list[dict]: the keys of dict are the wavelengths and the values are list[oscillator strengths(float)]. Data for each input file
         '''
         self.osc_ls_float_final = []
         self.osc_dict_list = [] 
@@ -121,7 +121,7 @@ class spec_uv_vis:
             None
 
         Returns:
-            list[dict]: the keys of dict are the wavelengths range and the values are the molar absorptivities. Data for each source file
+            list[dict]: the keys of dict are the wavelengths range and the values are the molar absorptivities. Data for each input file
         ''' 
         wl_nm=1/self.fwhm
         wl_cm=power(10, 7)/self.fwhm
@@ -265,7 +265,7 @@ class spec_uv_vis:
 
     def contrib_orb(self):
         '''
-        Get orbital transitions from gaussian's output and create a data sctruture of contribuitions of orbitals for closed shell systems
+        Get orbital transitions from input file and create a data sctruture of contribuitions of orbitals for closed shell systems
         '''
         self.contrib_ls = [] 
         self.labels_ls = []
@@ -317,7 +317,7 @@ class spec_uv_vis:
         '''
         for c in range(len(self.ls)):
             file= open(f'{self.directory_name}/{self.names_str[c]}_info.txt', 'w')
-            file.write(f'  ** Data from file {self.names_str[c]}.log **\n\n')
+            file.write(f'  ** Data from file {self.ls[c]} **\n\n')
             a='-'
             file.write(f'{a*55}\n')
             file.write('              Oscillator strengths      wavelength (nm)\n')
@@ -360,7 +360,7 @@ class spec_uv_vis:
     def individual_plot(self):
 
         '''
-        To create the plots for each source file that contains gaussian convolution data
+        To create the plots for each input file that contains gaussian convolution data
         '''
         x_vline_ls_final = []
         y_vline_ls_final =[]
@@ -417,11 +417,11 @@ class spec_uv_vis:
                        vline_exp_lambda=None, exp_csv_file=None
                       ):               
         '''
-        To create mutiple plots for each source file that contains gaussian convolution data normalized
+        To create mutiple plots for each input file that contains gaussian convolution data normalized
 
         Args:
             curve_colors (list[str] or None): colors for each curve (default: None). If None, the default colors will be used
-            labels_to_legend(list[str] or None): labels for each curve (default: None). If None, the names from log file (s) will be used
+            labels_to_legend(list[str] or None): labels for each curve (default: None). If None, the names from input file (s) will be used
             vline_exp_lambda (tuple[list]): tuple[0] is a list of experimental wavelengths (float) and tuple[1] is a list of respective names to legend (str) (default: None)
             exp_csv_file (tuple[str] or None): tuple[0] is the name of csv file and tuple[1] is the type of separation from csv file (default: None)
         Returns:
