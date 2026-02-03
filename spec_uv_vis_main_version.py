@@ -357,7 +357,7 @@ class spec_uv_vis:
             for i in range(len(self.x)):
                 file.write(f'  {round(self.x[i], 1)}                 {float(self.epslon_ls[c][i]):.4f}\n')   
             file.write(f'{a*38}')   
-    def individual_plot(self):
+    def show_individual_plot(self):
 
         '''
         To create the plots for each input file that contains gaussian convolution data
@@ -413,11 +413,11 @@ class spec_uv_vis:
             plt.xlim(self.start, self.end) 
             plt.show()
             
-    def multiple_plots(self, curve_colors=None, labels_to_legend=None, 
+    def output_multiple_plots(self, curve_colors=None, labels_to_legend=None, 
                        vline_exp_lambda=None, exp_csv_file=None
                       ):               
         '''
-        To create mutiple plots for each input file that contains gaussian convolution data normalized
+        To create mutiple plots for each input file that contains gaussian convolution data normalized. It's saved on directory of input
 
         Args:
             curve_colors (list[str] or None): colors for each curve (default: None). If None, the default colors will be used
