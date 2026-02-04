@@ -466,3 +466,8 @@ class spec_uv_vis:
         else:
             ax.legend(loc='upper center', mode='expand', bbox_to_anchor=(0.16, 0.97, 0.65, 0.15), ncol=2, frameon=False)
         plt.savefig(fname=f'{self.directory_name}/plots_spec_uv_vis.png', format='png')
+
+if __name__== '__main__':
+    obj=spec_uv_vis()
+    obj.output_multiple_plots()
+    obj.show_individual_plot()
