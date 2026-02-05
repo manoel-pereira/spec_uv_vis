@@ -522,5 +522,5 @@ class spec_uv_vis:
         plt.close()
 
 if __name__== '__main__':
-    obj=spec_uv_vis()
+    spec_uv_vis()
 
