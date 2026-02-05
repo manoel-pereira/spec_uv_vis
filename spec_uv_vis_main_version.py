@@ -3,26 +3,27 @@ import matplotlib.pyplot as plt
 from sys import argv
 from numpy import power, exp, arange, gradient, array
 from pathlib import Path
+from time import sleep
 class spec_uv_vis:
-    def __init__(self, dir=argv[1], Files=None, start=200, end=400, fwhm=3226.22, number_of_points=1000): 
-        '''
-        Analyse basic data from Gaussian log output file for excited state calculation
+    def __init__(self): 
 
-        Args:
-            Files (list[str] or None): list of input file name (s) (defaut:None). If None, the log or out files will be all from the current work directory
-            dir (list[str]): directory of input file (s). Default is to write as command-line parameter (argv[1])
-            start (int): start of wavelength (default: 200)
-            end (int): end of wavelength (default: 400)
-            number_of_points (int): number of points for gaussian convolution (default: 1000)
-            fwhm (float): full width at half maximum of gaussian curve (cm⁻¹) (default: 3226.22)
-        Returns:
-            None
-        '''
-        self.start = start
-        self.end = end
-        self.fwhm= fwhm
-        self.number_of_points = number_of_points
-        if Files==None:
+        dir=argv[1]
+        start=200
+        end=400
+        fwhm=3226.22
+        number_of_points=1000
+        self.directory_name=dir
+
+        print('Choose the input file(s):\n')
+        print('1 All .out or .log file(s) from the given directory')
+        print('2 The .out or .log file(s), from the given directory, selected by myself')
+        ans = input()
+        if ans=='2':
+            print('\nPut any quantity of input file(s) like that: gaus_output_sys1.log gaus_output_sys2.out')
+            list_inp_files = [input()]
+            for v in list_inp_files:
+                self.ls = v.split(' ')
+        elif ans=='1':
             r = Path(dir)
             l = []
             tuple_files = (r.glob('*.log'), r.glob('*.out'))
@@ -33,32 +34,135 @@ class spec_uv_vis:
                     k = i[len(i)-1]
                     l.append(k)
                 self.ls = l
+
         else:
-            self.ls=Files
-        self.directory_name = dir
+            print('Answer not supported!!')
+            exit()
+        
         self.names_str = []
         for names in self.ls:
             names = names[:len(names)-4]
             self.names_str.append(names)
-        self.get_transitions()
-        self.make_spectrum()
-        self.make_df()
-        self.make_df_normalized()
-        self.get_max_wl()   
-        self.shell()
-        self.contrib_orb()
-        self.info_file()
         
+        print('\nDefault parameters of Spec uv vis:\n ')
+        print(f' 1 start: {start}\n 2 end: {end}\n 3 FHWM: {fwhm}\n 4 number of points: {number_of_points}\n')
+        r = input('Do you wanna change any parameter? [Y/N]: ')
+
+        if r in 'yY':
+            print('What parameter (s) do you wanna change it? put on like that: 1=300 2=500')
+            choose_ls = [input()]
+
+            for values in choose_ls:
+                t = values.split(' ')
+
+            ints_ls=[]
+            num_ls=[]
+            for strings in t:
+                ints = int(strings[2:])
+                num_ls.append(strings[0])
+                ints_ls.append(ints)
+
+            for ind in range(len(num_ls)):
+                if num_ls[ind]=='1':
+                    start=ints_ls[ind]
+                elif num_ls[ind]=='2':
+                    end=ints_ls[ind]
+                elif num_ls[ind]=='3':
+                    fwhm=ints_ls[ind]
+                elif num_ls[ind]=='4':
+                    number_of_points=ints_ls[ind]
+            print('Loading updates...')
+            sleep(0.8)
+        elif r in 'nN':
+            pass
+        else:
+            print('Answer not supported!!')
+            exit()
+
+        self.start = start
+        self.end = end
+        self.fwhm= fwhm
+        self.number_of_points = number_of_points
+        try:
+            self.get_transitions()
+            self.make_spectrum()
+            self.make_df()
+            self.make_df_normalized()
+            self.get_max_wl()   
+            self.shell()
+            self.contrib_orb()
+        except FileNotFoundError:
+            print('File(s) not found it!')
+            exit()
+        print('\nAvailable outputs:\n')
+        print(' 1 output data file\n 2 save multiple plots\n 3 show individual plot\n')
+        print('What outputs do you want to? put on like that: 1 2 3')
+        l_ls = [input()]
+        for ll in l_ls:
+            u=ll.split(' ') 
+        for index in range(len(u)):
+            if u[index]=='1':
+                print(f'Outputting data file(s) on {self.directory_name}...')
+                self.info_file()
+                sleep(0.8)
+            elif u[index]=='2':
+                print('\nDefault parameters of multiple plots:\n\n 1 Experimental csv file: None')
+                print(' 2 Lines of experimetal wavelengths of maximal absorption: None')
+                print(' 3 Labels of curves: names of input file(s) itself')
+                n = input('\nDo you wanna change any these parameters? [Y/N]: ')
+                if n in 'nN':
+                    self.vline_exp_lambda =None
+                    self.labels_to_legend = None
+                    self.exp_csv_file  =None
+                    self.output_multiple_plots()
+                elif n in 'yY':
+                    print('What parameters do you wanna change it? put on like that: 1=exp.csv:sep(;) 2=250,340;exp_1,exp2 3=cam-b3lyp,lc-blyp')
+                    in_mult = [input()]
+                    for inp in in_mult:
+                        in_mult_ls  = inp.split(' ')
+                    for splited in in_mult_ls:
+                        if '1=' in splited:
+                            self.exp_csv_file = (splited[2:splited.find(':')], splited[splited.find('(')+1])
+                        elif '2=' in splited or '3=' in splited:
+                            self.exp_csv_file = None
+                    for splited in in_mult_ls:
+                        if '2=' in splited:
+                            s = splited[splited.find('=')+1:splited.find(';')]
+                            lamb_exp_ls_str=s.split(',')
+                            s_str = splited[splited.find(';')+1:len(splited)]
+                            labels_exp_ls  =s_str.split(',')
+
+                            lamb_exp_ls_float = []
+                            for strs in lamb_exp_ls_str:
+                                floats = float(strs)
+                                lamb_exp_ls_float.append(floats)
+                            self.vline_exp_lambda=(lamb_exp_ls_float, labels_exp_ls)
+
+                        elif '1=' in splited or '3=' in splited:
+                            self.vline_exp_lambda = None
+
+                    for splited in in_mult_ls:
+                        if '3=' in splited:
+                            labels_opt  = splited[2:]
+                            self.labels_to_legend = labels_opt.split(',')
+                        elif '2=' in splited or '1=' in splited:
+                            self.labels_to_legend = None
+
+                    self.output_multiple_plots()
+                
+                print(f'\nOutputting multiple plots file on {self.directory_name}...')
+                sleep(0.8)
+            elif u[index]=='3':
+                print('genereting plot...')
+                sleep(0.8)
+                self.show_individual_plot()
+            else:
+                print('Answer not supported!!')
+                exit()
+        print('Done!')
+
     def get_transitions(self):
-        '''
-        Get of oscillator strengths  and their wavelengths of excited states from Guassian output file (s)
 
-        Args: 
-            None
-
-        Returns:
-            list[dict]: the keys of dict are the wavelengths and the values are list[oscillator strengths(float)]. Data for each input file
-        '''
         self.osc_ls_float_final = []
         self.osc_dict_list = [] 
         self.keys_ls=[]
@@ -114,15 +218,7 @@ class spec_uv_vis:
         return self.osc_dict_list
     
     def make_spectrum(self):
-        '''
-        Make the gaussian convolution
 
-        Args:
-            None
-
-        Returns:
-            list[dict]: the keys of dict are the wavelengths range and the values are the molar absorptivities. Data for each input file
-        ''' 
         wl_nm=1/self.fwhm
         wl_cm=power(10, 7)/self.fwhm
         A= 2.174*power(10, 8)
@@ -158,15 +254,7 @@ class spec_uv_vis:
         return self.final_map_list 
 
     def make_df(self):
-        '''
-        To create dataframe, from pandas, of gaussian convolution data 
 
-        Args:
-            None
-
-        Returns:
-            list: list for each dataframe
-        '''
         self.df_ls=[]
         self.abs_min_ls=[]
         self.abs_max_ls=[]
@@ -186,15 +274,6 @@ class spec_uv_vis:
         return self.df_ls
 
     def make_df_normalized(self):
-        '''
-        To create dataframe, from pandas, of normalized gaussian convolution data
-
-        Args:
-            None
-
-        Returns:
-            list: list of each normalized dataframe
-        '''
 
         self.df_ls_norm =[]
         for c in range(len(self.df_ls)):
@@ -205,13 +284,6 @@ class spec_uv_vis:
         return self.df_ls_norm
     
     def get_max_wl(self):
-        '''to get the maximum wavelengths from gaussian convolution data
-
-        Args:
-            None
-        
-        Returns:
-            list[list]: list of maximum wavelengths for each dataframe'''
         
         self.lambda_max_ls = []
         self.y_max_ls = []
@@ -244,6 +316,7 @@ class spec_uv_vis:
             self.y_max_ls_norm.append(y_max_norm)
         return self.lambda_max_ls
     def shell(self):
+
         shell_ls_list = []
         for c in range(len(self.ls)):
             shell_ls = []
@@ -264,9 +337,7 @@ class spec_uv_vis:
                 self.shell_final.append('open')
 
     def contrib_orb(self):
-        '''
-        Get orbital transitions from input file and create a data sctruture of contribuitions of orbitals for closed shell systems
-        '''
+
         self.contrib_ls = [] 
         self.labels_ls = []
         self.shell_ls= []
@@ -312,9 +383,7 @@ class spec_uv_vis:
                 self.contrib_ls.append(None)
             
     def info_file(self):
-        '''
-        To create a file that contains the oscillator strengths, contribuitions of canonical obitals and gaussian convolution data
-        '''
+
         for c in range(len(self.ls)):
             file= open(f'{self.directory_name}/{self.names_str[c]}_info.txt', 'w')
             file.write(f'  ** Data from file {self.ls[c]} **\n\n')
@@ -359,9 +428,6 @@ class spec_uv_vis:
             file.write(f'{a*38}')   
     def show_individual_plot(self):
 
-        '''
-        To create the plots for each input file that contains gaussian convolution data
-        '''
         x_vline_ls_final = []
         y_vline_ls_final =[]
         ls_final_osc = []
@@ -413,41 +479,28 @@ class spec_uv_vis:
             plt.xlim(self.start, self.end) 
             plt.show()
             
-    def output_multiple_plots(self, curve_colors=None, labels_to_legend=None, 
-                       vline_exp_lambda=None, exp_csv_file=None
-                      ):               
-        '''
-        To create mutiple plots for each input file that contains gaussian convolution data normalized. It's saved on directory of input
+    def output_multiple_plots(self):               
 
-        Args:
-            curve_colors (list[str] or None): colors for each curve (default: None). If None, the default colors will be used
-            labels_to_legend(list[str] or None): labels for each curve (default: None). If None, the names from input file (s) will be used
-            vline_exp_lambda (tuple[list]): tuple[0] is a list of experimental wavelengths (float) and tuple[1] is a list of respective names to legend (str) (default: None)
-            exp_csv_file (tuple[str] or None): tuple[0] is the name of csv file and tuple[1] is the type of separation from csv file (default: None)
-        Returns:
-            None
-           '''
-        if curve_colors==None:
-            colors_new = []
-            colors = ["#020E07",'#EC2504', "#12D10C", 
-                      "#09C4F2", "#C507CC", "#1F08EA", 
-                      "#FAE606", "#F98501", '#CF95D7']
-            for c in range(len(self.ls)):
-                colors_new.append(colors[c])
+        colors_new = []
+        colors = ["#020E07",'#EC2504', "#12D10C", 
+                    "#09C4F2", "#C507CC", "#1F08EA", 
+                    "#FAE606", "#F98501", '#CF95D7']
+        for c in range(len(self.ls)):
+            colors_new.append(colors[c])
             curve_colors=colors_new
-        if labels_to_legend==None:
-            labels_to_legend=self.names_str
+        if self.labels_to_legend==None:
+            self.labels_to_legend=self.names_str
         plt.figure(figsize=[7,7], num='plots_spec_uv_vis')
         ax = plt.subplot()
         for c in range(len(self.df_ls)):
             x = self.df_ls[c]['w']
             y = self.df_ls_norm[c]['abs_norm']
             ax.plot(x, y, color=curve_colors[c], 
-                    label=labels_to_legend[c]
+                    label=self.labels_to_legend[c]
                     )  
-        if exp_csv_file!=None:
-            name = exp_csv_file[0][:len(exp_csv_file[0])-4]
-            df = read_csv(f'{self.directory_name}/{exp_csv_file[0]}', sep=exp_csv_file[1])
+        if self.exp_csv_file!=None:
+            name = self.exp_csv_file[0][:len(self.exp_csv_file[0])-4]
+            df = read_csv(f'{self.directory_name}/{self.exp_csv_file[0]}', sep=self.exp_csv_file[1])
             x = df[df.columns[0]]
             y = df[df.columns[1]]
             y = (y-y.min())/(y.max()-y.min())
@@ -458,16 +511,16 @@ class spec_uv_vis:
         ax.grid(alpha=0.4, linestyle='--')
         plt.xlabel(xlabel='wavelength (nm)', fontdict=add)
         plt.xlim(self.start, self.end)
-        if vline_exp_lambda!=None:
-            for i in range(len(vline_exp_lambda[0])):
-                plt.vlines(x=vline_exp_lambda[0][i], ymin=0.0, ymax=1.005, linestyles='--', colors='blue', label=vline_exp_lambda[1][i])
+        if self.vline_exp_lambda!=None:
+            for i in range(len(self.vline_exp_lambda[0])):
+                plt.vlines(x=self.vline_exp_lambda[0][i], ymin=0.0, ymax=1.005, linestyles='--', colors='blue', label=self.vline_exp_lambda[1][i])
         if len(self.ls)>=3:
             ax.legend(loc="lower left", bbox_to_anchor=(0.03, 1.00, 0.90, 0.15), mode='expand', ncol=3, frameon=False)
         else:
             ax.legend(loc='upper center', mode='expand', bbox_to_anchor=(0.16, 0.97, 0.65, 0.15), ncol=2, frameon=False)
         plt.savefig(fname=f'{self.directory_name}/plots_spec_uv_vis.png', format='png')
+        plt.close()
 
 if __name__== '__main__':
     obj=spec_uv_vis()
-    obj.output_multiple_plots()
-    obj.show_individual_plot()
+
