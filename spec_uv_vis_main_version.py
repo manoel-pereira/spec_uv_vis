@@ -6,7 +6,6 @@ from pathlib import Path
 from time import sleep
 class spec_uv_vis:
     def __init__(self): 
-
         dir=argv[1]
         start=200
         end=400
@@ -15,11 +14,11 @@ class spec_uv_vis:
         self.directory_name=dir
 
         print('Choose the input file(s):\n')
-        print('1 All .out or .log file(s) from the given directory')
-        print('2 The .out or .log file(s), from the given directory, selected by myself')
+        print('1 All .out or .log file(s) from the selected directory')
+        print('2 Enter .out or .log file(s) from the selected directory')
         ans = input()
         if ans=='2':
-            print('\nPut any quantity of input file(s) like that: gaus_output_sys1.log gaus_output_sys2.out')
+            print('\n Enter any quantity of input file(s) like that: gaus_output_sys1.log gaus_output_sys2.out')
             list_inp_files = [input()]
             for v in list_inp_files:
                 self.ls = v.split(' ')
@@ -34,9 +33,19 @@ class spec_uv_vis:
                     k = i[len(i)-1]
                     l.append(k)
                 self.ls = l
-
+            if len(self.ls)==0:
+                print('Any input file was not found!')
+                exit()
+            else:
+                print('\nLoanding input file(s)...')
+                sleep(0.6)
+                for ind_files in range(len(self.ls)):
+                    if ind_files==len(self.ls)-1:
+                        print(self.ls[ind_files])
+                    else:
+                        print(self.ls[ind_files], end=' ')
         else:
-            print('Answer not supported!!')
+            print('Input not supported!!')
             exit()
         
         self.names_str = []
@@ -49,7 +58,7 @@ class spec_uv_vis:
         r = input('Do you wanna change any parameter? [Y/N]: ')
 
         if r in 'yY':
-            print('What parameter (s) do you wanna change it? put on like that: 1=300 2=500')
+            print('Which parameter(s) do you wanna change? Enter like that: 1=300 2=500')
             choose_ls = [input()]
 
             for values in choose_ls:
@@ -72,11 +81,11 @@ class spec_uv_vis:
                 elif num_ls[ind]=='4':
                     number_of_points=ints_ls[ind]
             print('Loading updates...')
-            sleep(0.8)
+            sleep(0.6)
         elif r in 'nN':
             pass
         else:
-            print('Answer not supported!!')
+            print('Input not supported!!')
             exit()
 
         self.start = start
@@ -92,11 +101,11 @@ class spec_uv_vis:
             self.shell()
             self.contrib_orb()
         except FileNotFoundError:
-            print('File(s) not found it!')
+            print('File(s) was not found!')
             exit()
         print('\nAvailable outputs:\n')
-        print(' 1 output data file\n 2 save multiple plots\n 3 show individual plot\n')
-        print('What outputs do you want to? put on like that: 1 2 3')
+        print(' 1 output data file\n 2 output multiple plots\n 3 show individual plot\n')
+        print('Which outputs do you want to? Enter like that: 1 2 3')
         l_ls = [input()]
         for ll in l_ls:
             u=ll.split(' ') 
@@ -104,7 +113,7 @@ class spec_uv_vis:
             if u[index]=='1':
                 print(f'Outputting data file(s) on {self.directory_name}...')
                 self.info_file()
-                sleep(0.8)
+                sleep(0.6)
             elif u[index]=='2':
                 print('\nDefault parameters of multiple plots:\n\n 1 Experimental csv file: None')
                 print(' 2 Lines of experimetal wavelengths of maximal absorption: None')
@@ -116,7 +125,7 @@ class spec_uv_vis:
                     self.exp_csv_file  =None
                     self.output_multiple_plots()
                 elif n in 'yY':
-                    print('What parameters do you wanna change it? put on like that: 1=exp.csv:sep(;) 2=250,340;exp_1,exp2 3=cam-b3lyp,lc-blyp')
+                    print('Which parameters do you wanna change? Enter like that: 1=exp.csv:sep(;) 2=250,340;exp_1,exp2 3=cam-b3lyp,lc-blyp')
                     in_mult = [input()]
                     for inp in in_mult:
                         in_mult_ls  = inp.split(' ')
@@ -151,18 +160,17 @@ class spec_uv_vis:
                     self.output_multiple_plots()
                 
                 print(f'\nOutputting multiple plots file on {self.directory_name}...')
-                sleep(0.8)
+                sleep(0.6)
             elif u[index]=='3':
-                print('genereting plot...')
-                sleep(0.8)
+                print('Genereting plot...')
+                sleep(0.6)
                 self.show_individual_plot()
             else:
-                print('Answer not supported!!')
+                print('Input not supported!!')
                 exit()
         print('Done!')
 
     def get_transitions(self):
-
         self.osc_ls_float_final = []
         self.osc_dict_list = [] 
         self.keys_ls=[]
@@ -218,7 +226,6 @@ class spec_uv_vis:
         return self.osc_dict_list
     
     def make_spectrum(self):
-
         wl_nm=1/self.fwhm
         wl_cm=power(10, 7)/self.fwhm
         A= 2.174*power(10, 8)
@@ -254,7 +261,6 @@ class spec_uv_vis:
         return self.final_map_list 
 
     def make_df(self):
-
         self.df_ls=[]
         self.abs_min_ls=[]
         self.abs_max_ls=[]
@@ -274,7 +280,6 @@ class spec_uv_vis:
         return self.df_ls
 
     def make_df_normalized(self):
-
         self.df_ls_norm =[]
         for c in range(len(self.df_ls)):
             df_x = self.df_ls[c]['abs']
@@ -283,8 +288,7 @@ class spec_uv_vis:
             self.df_ls_norm.append(self.df_ls[c])
         return self.df_ls_norm
     
-    def get_max_wl(self):
-        
+    def get_max_wl(self): 
         self.lambda_max_ls = []
         self.y_max_ls = []
         self.y_max_ls_norm = []
@@ -315,8 +319,8 @@ class spec_uv_vis:
             self.lambda_max_ls.append(lambda_max)
             self.y_max_ls_norm.append(y_max_norm)
         return self.lambda_max_ls
+    
     def shell(self):
-
         shell_ls_list = []
         for c in range(len(self.ls)):
             shell_ls = []
@@ -337,7 +341,6 @@ class spec_uv_vis:
                 self.shell_final.append('open')
 
     def contrib_orb(self):
-
         self.contrib_ls = [] 
         self.labels_ls = []
         self.shell_ls= []
@@ -383,7 +386,6 @@ class spec_uv_vis:
                 self.contrib_ls.append(None)
             
     def info_file(self):
-
         for c in range(len(self.ls)):
             file= open(f'{self.directory_name}/{self.names_str[c]}_info.txt', 'w')
             file.write(f'  ** Data from file {self.ls[c]} **\n\n')
@@ -426,8 +428,8 @@ class spec_uv_vis:
             for i in range(len(self.x)):
                 file.write(f'  {round(self.x[i], 1)}                 {float(self.epslon_ls[c][i]):.4f}\n')   
             file.write(f'{a*38}')   
-    def show_individual_plot(self):
 
+    def show_individual_plot(self):
         x_vline_ls_final = []
         y_vline_ls_final =[]
         ls_final_osc = []
@@ -480,11 +482,10 @@ class spec_uv_vis:
             plt.show()
             
     def output_multiple_plots(self):               
-
         colors_new = []
         colors = ["#020E07",'#EC2504', "#12D10C", 
                     "#09C4F2", "#C507CC", "#1F08EA", 
-                    "#FAE606", "#F98501", '#CF95D7']
+                    "#FAE606", "#F98501", '#CF95D7', "#050130"]
         for c in range(len(self.ls)):
             colors_new.append(colors[c])
             curve_colors=colors_new
