@@ -18,7 +18,7 @@ class spec_uv_vis:
         print('2 Enter .out or .log file(s) from the selected directory')
         ans = input()
         if ans=='2':
-            print('\n Enter any quantity of input file(s) like that: gaus_output_sys1.log gaus_output_sys2.out')
+            print('\nEnter any quantity of input file(s) like that: gaus_output_sys1.log gaus_output_sys2.out')
             list_inp_files = [input()]
             for v in list_inp_files:
                 self.ls = v.split(' ')
@@ -119,10 +119,10 @@ class spec_uv_vis:
                 print(' 2 Lines of experimetal wavelengths of maximal absorption: None')
                 print(' 3 Labels of curves: names of input file(s) itself')
                 n = input('\nDo you wanna change any these parameters? [Y/N]: ')
+                self.exp_csv_file = None
+                self.labels_to_legend = None
+                self.vline_exp_lambda = None
                 if n in 'nN':
-                    self.vline_exp_lambda =None
-                    self.labels_to_legend = None
-                    self.exp_csv_file  =None
                     self.output_multiple_plots()
                 elif n in 'yY':
                     print('Which parameters do you wanna change? Enter like that: 1=exp.csv:sep(;) 2=250,340;exp_1,exp2 3=cam-b3lyp,lc-blyp')
@@ -130,33 +130,22 @@ class spec_uv_vis:
                     for inp in in_mult:
                         in_mult_ls  = inp.split(' ')
                     for splited in in_mult_ls:
+
                         if '1=' in splited:
                             self.exp_csv_file = (splited[2:splited.find(':')], splited[splited.find('(')+1])
-                        elif '2=' in splited or '3=' in splited:
-                            self.exp_csv_file = None
-                    for splited in in_mult_ls:
-                        if '2=' in splited:
+                        elif '2=' in splited:
                             s = splited[splited.find('=')+1:splited.find(';')]
                             lamb_exp_ls_str=s.split(',')
                             s_str = splited[splited.find(';')+1:len(splited)]
                             labels_exp_ls  =s_str.split(',')
-
                             lamb_exp_ls_float = []
                             for strs in lamb_exp_ls_str:
                                 floats = float(strs)
                                 lamb_exp_ls_float.append(floats)
-                            self.vline_exp_lambda=(lamb_exp_ls_float, labels_exp_ls)
-
-                        elif '1=' in splited or '3=' in splited:
-                            self.vline_exp_lambda = None
-
-                    for splited in in_mult_ls:
-                        if '3=' in splited:
+                            self.vline_exp_lambda=(lamb_exp_ls_float, labels_exp_ls) 
+                        elif '3=' in splited:
                             labels_opt  = splited[2:]
                             self.labels_to_legend = labels_opt.split(',')
-                        elif '2=' in splited or '1=' in splited:
-                            self.labels_to_legend = None
-
                     self.output_multiple_plots()
                 
                 print(f'\nOutputting multiple plots file on {self.directory_name}...')
@@ -500,6 +489,7 @@ class spec_uv_vis:
                     label=self.labels_to_legend[c]
                     )  
         if self.exp_csv_file!=None:
+            
             name = self.exp_csv_file[0][:len(self.exp_csv_file[0])-4]
             df = read_csv(f'{self.directory_name}/{self.exp_csv_file[0]}', sep=self.exp_csv_file[1])
             x = df[df.columns[0]]
@@ -513,8 +503,9 @@ class spec_uv_vis:
         plt.xlabel(xlabel='wavelength (nm)', fontdict=add)
         plt.xlim(self.start, self.end)
         if self.vline_exp_lambda!=None:
+            color_lines = ["#00028395","#56100498", "#032E02",  "#F29909", "#07B5CCB9", "#7908EA89"]
             for i in range(len(self.vline_exp_lambda[0])):
-                plt.vlines(x=self.vline_exp_lambda[0][i], ymin=0.0, ymax=1.005, linestyles='--', colors='blue', label=self.vline_exp_lambda[1][i])
+                plt.vlines(x=self.vline_exp_lambda[0][i], ymin=0.0, ymax=1.005, linestyles='--', colors=color_lines[i], label=self.vline_exp_lambda[1][i])
         if len(self.ls)>=3:
             ax.legend(loc="lower left", bbox_to_anchor=(0.03, 1.00, 0.90, 0.15), mode='expand', ncol=3, frameon=False)
         else:
