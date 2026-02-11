@@ -97,11 +97,15 @@ class spec_uv_vis:
             self.make_spectrum()
             self.make_df()
             self.make_df_normalized()
+        except FileNotFoundError:
+            print('File(s) was not found!')
+            exit()
+        try:
             self.get_max_wl()   
             self.shell()
             self.contrib_orb()
-        except FileNotFoundError:
-            print('File(s) was not found!')
+        except ValueError:
+            print('Neither .log nor .out files were found in selected directory')
             exit()
         print('\nAvailable outputs:\n')
         print(' 1 output data file\n 2 output multiple plots\n 3 show individual plot\n')
